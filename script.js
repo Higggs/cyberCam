@@ -10,16 +10,23 @@ const authorizeBtn = document.getElementById('authorizeBtn');
 let W, H;
 
 function syncCanvasSize() {
-  const rect = ditherCanvas.getBoundingClientRect();
-  W = Math.round(rect.width)  || 220;
-  H = Math.round(rect.height) || 260;
+  // On mobile, use video's native resolution so the feed isn't cropped or squished.
+  // Fall back to rendered wrapper size (desktop behaviour).
+  if (video.videoWidth && video.videoHeight) {
+    W = video.videoWidth;
+    H = video.videoHeight;
+  } else {
+    const rect = ditherCanvas.parentElement.getBoundingClientRect();
+    W = Math.round(rect.width)  || 220;
+    H = Math.round(rect.height) || 260;
+  }
   ditherCanvas.width  = W;
   ditherCanvas.height = H;
   offscreen.width     = W;
   offscreen.height    = H;
 }
 
-syncCanvasSize();
+// Re-sync whenever the video stream starts or the window resizes
 window.addEventListener('resize', syncCanvasSize);
 
 // ─── Bayer 4×4 Ordered Dither Matrix ─────────────────────────
@@ -98,7 +105,9 @@ async function initCam() {
       video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
     });
     video.srcObject = stream;
+    video.addEventListener('loadedmetadata', syncCanvasSize);
     await video.play();
+    syncCanvasSize(); // ensure size is set before first frame
     permPrompt.style.display = 'none';
     renderFrame();
   } catch {
