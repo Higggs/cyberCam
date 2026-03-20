@@ -1,0 +1,456 @@
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --teal:      #00e5cc;
+  --teal-dim:  #007a6e;
+  --teal-faint:#003d38;
+  --bg:        #050f0e;
+  --amber:     #ffb800;
+  --red:       #ff3c3c;
+  --white:     #cce8e5;
+}
+
+/* ─── Reset ─────────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ─── Body & CRT Effects ─────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--teal);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Scanlines */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.18) 2px,
+    rgba(0,0,0,0.18) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Vignette */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.85) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ─── Terminal Card ──────────────────────────────────────────── */
+.terminal {
+  width: 620px;
+  border: 2px solid var(--teal);
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--teal-dim),
+    0 0 30px rgba(0,229,204,0.12),
+    0 0 80px rgba(0,229,204,0.05),
+    inset 0 0 60px rgba(0,229,204,0.03);
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--teal-dim);
+  background: rgba(0,229,204,0.05);
+}
+
+.header-left {
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--teal);
+  text-shadow: 0 0 10px var(--teal);
+}
+
+.header-left span {
+  color: var(--white);
+  font-size: 26px;
+}
+
+.signal-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--teal-dim);
+}
+
+.signal-label { animation: blink 1.8s step-end infinite; }
+
+.battery { display: flex; gap: 3px; align-items: center; }
+
+.battery-bar {
+  width: 8px;
+  height: 12px;
+  background: var(--teal);
+  opacity: 0.9;
+}
+
+.battery-bar:last-child { opacity: 0.3; }
+
+.access-block { text-align: right; }
+
+.access-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal-dim);
+}
+
+.access-stars {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--teal-faint);
+}
+
+/* ─── Officer Row ────────────────────────────────────────────── */
+.officer-row {
+  padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--teal-faint);
+}
+
+.officer-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--teal-dim);
+}
+
+.officer-id {
+  font-family: 'VT323', monospace;
+  font-size: 38px;
+  letter-spacing: 4px;
+  color: var(--white);
+  text-shadow: 0 0 15px rgba(204,232,229,0.5);
+  line-height: 1;
+}
+
+/* ─── Main Body ──────────────────────────────────────────────── */
+.main-body {
+  display: flex;
+  padding: 12px;
+  border-bottom: 1px solid var(--teal-faint);
+}
+
+/* ─── Camera ─────────────────────────────────────────────────── */
+.cam-wrapper {
+  position: relative;
+  width: 220px;
+  height: 260px;
+  flex-shrink: 0;
+  border: 1px solid var(--teal-dim);
+  overflow: hidden;
+  background: #000;
+  animation: flicker 6s infinite;
+}
+
+.cam-wrapper canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Corner brackets via pseudo-elements */
+.cam-wrapper::before,
+.cam-wrapper::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cam-wrapper::before {
+  top: 0; left: 0;
+  border-top: 2px solid var(--teal);
+  border-left: 2px solid var(--teal);
+}
+
+.cam-wrapper::after {
+  bottom: 0; right: 0;
+  border-bottom: 2px solid var(--teal);
+  border-right: 2px solid var(--teal);
+}
+
+.cam-corner-tr,
+.cam-corner-bl {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.cam-corner-tr {
+  top: 0; right: 0;
+  border-top: 2px solid var(--teal);
+  border-right: 2px solid var(--teal);
+}
+
+.cam-corner-bl {
+  bottom: 0; left: 0;
+  border-bottom: 2px solid var(--teal);
+  border-left: 2px solid var(--teal);
+}
+
+.cam-live-badge {
+  position: absolute;
+  top: 6px; right: 8px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--red);
+  z-index: 11;
+  animation: blink 1s step-end infinite;
+  text-shadow: 0 0 8px var(--red);
+}
+
+.cam-id-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--teal-dim);
+  z-index: 11;
+}
+
+.cam-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,229,204,0.08) 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.cam-scanline {
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  background: rgba(0,229,204,0.15);
+  z-index: 6;
+  pointer-events: none;
+  animation: scanmove 3s linear infinite;
+}
+
+/* ─── Permission Prompt ──────────────────────────────────────── */
+.permission-prompt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 20;
+  background: rgba(5,15,14,0.95);
+  cursor: pointer;
+}
+
+.permission-prompt p {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--teal-dim);
+  text-align: center;
+  padding: 0 10px;
+  line-height: 1.6;
+}
+
+.permission-prompt .icon {
+  font-family: 'VT323', monospace;
+  font-size: 40px;
+  color: var(--teal-dim);
+  text-shadow: 0 0 15px var(--teal-dim);
+}
+
+.permission-prompt .btn {
+  border: 1px solid var(--teal-dim);
+  padding: 4px 14px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--teal);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.permission-prompt .btn:hover {
+  background: rgba(0,229,204,0.1);
+  box-shadow: 0 0 10px rgba(0,229,204,0.2);
+}
+
+/* ─── Info Panel ─────────────────────────────────────────────── */
+.info-panel {
+  flex: 1;
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row {
+  border-bottom: 1px solid var(--teal-faint);
+  padding-bottom: 8px;
+}
+
+.info-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal-dim);
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--teal);
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(0,229,204,0.4);
+}
+
+#statusValue {
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255,184,0,0.5);
+}
+
+.nexus-tag {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--teal-faint);
+}
+
+.nexus-tag .tag-box {
+  border: 1px solid var(--teal-dim);
+  padding: 1px 4px;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.jp-text {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--white);
+  line-height: 1.3;
+  font-family: 'VT323', monospace;
+}
+
+.wallace-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.wallace-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+}
+
+.wallace-bar {
+  width: 4px;
+  background: var(--teal-dim);
+}
+
+.wallace-name {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal-dim);
+  line-height: 1.1;
+}
+
+/* ─── Auth Block ─────────────────────────────────────────────── */
+.auth-block {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--teal-faint);
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: 0.5px;
+  color: var(--teal-dim);
+}
+
+.auth-block span { color: var(--teal); }
+
+/* ─── Status Ticker ──────────────────────────────────────────── */
+.status-bar {
+  padding: 6px 12px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--teal-faint);
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--teal-faint);
+}
+
+.status-scroll {
+  display: inline-block;
+  animation: marquee 18s linear infinite;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--teal-faint);
+}
+
+.footer-symbol {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--teal-dim);
+}
+
+/* ─── Hidden elements ────────────────────────────────────────── */
+#videoEl  { display: none; }
+#offscreen { display: none; }
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 97%, 100% { opacity: 1; }
+  98%            { opacity: 0.85; }
+  99%            { opacity: 0.95; }
+}
+
+@keyframes scanmove {
+  0%   { top: -3px; }
+  100% { top: 100%; }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(620px); }
+  100% { transform: translateX(-100%); }
+}
