@@ -17,14 +17,12 @@ body {
   background: var(--bg);
   color: var(--teal);
   font-family: 'Share Tech Mono', monospace;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 0;
-  align-items: flex-start;
 }
 
 /* Scanlines */
@@ -177,7 +175,7 @@ body::after {
   height: auto;
 }
 
-/* Corner brackets via pseudo-elements */
+/* Corner brackets */
 .cam-wrapper::before,
 .cam-wrapper::after {
   content: '';
@@ -302,9 +300,11 @@ body::after {
   font-family: 'Share Tech Mono', monospace;
   margin-top: 4px;
   transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.permission-prompt .btn:hover {
+.permission-prompt .btn:hover,
+.permission-prompt .btn:active {
   background: rgba(0,229,204,0.1);
   box-shadow: 0 0 10px rgba(0,229,204,0.2);
 }
@@ -441,7 +441,7 @@ body::after {
 }
 
 /* ─── Hidden elements ────────────────────────────────────────── */
-#videoEl  { display: none; }
+#videoEl   { display: none; }
 #offscreen { display: none; }
 
 /* ─── Animations ─────────────────────────────────────────────── */
@@ -466,81 +466,156 @@ body::after {
   100% { transform: translateX(-100%); }
 }
 
-/* ─── Mobile (≤ 480px) ───────────────────────────────────────── */
-@media (max-width: 480px) {
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE  (≤ 600px)
+   Full-screen ID card:
+   - Camera bleeds edge-to-edge, ~55vw tall
+   - Info panel is a 2-column data grid below
+   - Auth + ticker + footer stack naturally beneath
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
   body {
     align-items: flex-start;
-    min-height: 100dvh;
+    justify-content: flex-start;
   }
 
   .terminal {
     width: 100vw;
-    border-left: none;
-    border-right: none;
     min-height: 100dvh;
+    border: none;
+    border-top: 2px solid var(--teal);
+    border-bottom: 2px solid var(--teal);
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* Stack cam above info panel */
+  /* Header */
+  .header {
+    padding: 10px 16px;
+    flex-shrink: 0;
+  }
+
+  .header-left      { font-size: 20px; letter-spacing: 2px; }
+  .header-left span { font-size: 25px; }
+  .signal-label     { display: none; }
+
+  /* Officer row */
+  .officer-row { padding: 8px 16px 5px; }
+  .officer-id  { font-size: 36px; letter-spacing: 3px; }
+
+  /* Main body: column stack, no padding (cam bleeds) */
   .main-body {
     flex-direction: column;
-    padding: 10px;
-    gap: 10px;
+    padding: 0;
+    border-bottom: none;
+    flex: 1;
+    gap: 0;
   }
 
-  /* Camera fills full width, overflows naturally */
+  /* Camera: full-width, proportional height */
   .cam-wrapper {
     width: 100%;
-    height: auto;
-    flex-shrink: unset;
-    overflow: visible;
+    height: 55vw;
+    min-height: 220px;
+    flex-shrink: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid var(--teal-dim);
+    border-bottom: 1px solid var(--teal-dim);
   }
 
-  .cam-wrapper canvas {
-    width: 100%;
-    height: auto;
-    display: block;
+  .cam-wrapper::before,
+  .cam-wrapper::after,
+  .cam-corner-tr,
+  .cam-corner-bl {
+    width: 22px;
+    height: 22px;
   }
 
+  .cam-live-badge { font-size: 11px; top: 10px; right: 14px; }
+  .cam-id-badge   { font-size: 10px; bottom: 10px; letter-spacing: 2px; }
+
+  /* Info panel: 2-column grid */
   .info-panel {
+    padding: 14px 16px 10px;
+    gap: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--teal-faint);
+  }
+
+  /* Nexus tag spans full row */
+  .nexus-tag {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+  }
+
+  /* Left-column rows get a right divider */
+  .info-row {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--teal-faint);
+    border-right: 1px solid var(--teal-faint);
+    margin-right: 12px;
+  }
+
+  /* Right-column rows: remove divider */
+  .info-row:nth-child(odd) {
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+    padding-left: 12px;
+  }
+
+  /* Status row: full-width, no side dividers */
+  .info-panel > div:last-child {
+    grid-column: 1 / -1;
+    border-right: none;
+    border-top: 1px solid var(--teal-faint);
+    border-bottom: none;
+    padding: 10px 0 4px;
+    margin-right: 0;
     padding-left: 0;
-    padding-top: 4px;
   }
 
-  .officer-id {
-    font-size: 30px;
-    letter-spacing: 2px;
-  }
+  .info-label { font-size: 9px; }
+  .info-value { font-size: 24px; }
+  .jp-text    { font-size: 16px; }
 
-  .header-left {
-    font-size: 18px;
-  }
-
-  .header-left span {
-    font-size: 22px;
-  }
-
-  .signal-label {
-    display: none; /* avoid crowding on tiny screens */
-  }
-
+  /* Auth block */
   .auth-block {
     font-size: 9px;
+    line-height: 1.65;
+    padding: 10px 16px;
   }
 
+  /* Ticker */
+  .status-bar {
+    font-size: 9px;
+    padding: 5px 16px;
+  }
+
+  /* Footer */
   .footer {
+    padding: 10px 16px;
+    justify-content: center;
     font-size: 8px;
     letter-spacing: 1px;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-    text-align: center;
   }
 
   .footer-symbol { display: none; }
+
+  /* Permission prompt: bigger tap targets */
+  .permission-prompt .icon { font-size: 56px; }
+  .permission-prompt p     { font-size: 12px; }
+  .permission-prompt .btn  { padding: 12px 28px; font-size: 13px; }
 }
 
-/* ─── Tablet (481px – 660px) ─────────────────────────────────── */
-@media (min-width: 481px) and (max-width: 660px) {
+/* ─── Tablet (601px – 700px) ─────────────────────────────────── */
+@media (min-width: 601px) and (max-width: 700px) {
   .terminal {
     width: 100vw;
     border-left: none;
@@ -548,11 +623,9 @@ body::after {
   }
 
   .cam-wrapper {
-    width: 180px;
-    height: 215px;
+    width: 190px;
+    height: 225px;
   }
 
-  .officer-id {
-    font-size: 32px;
-  }
+  .officer-id { font-size: 34px; }
 }
