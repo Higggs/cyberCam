@@ -7,12 +7,20 @@ const offCtx       = offscreen.getContext('2d');
 const permPrompt   = document.getElementById('permPrompt');
 const authorizeBtn = document.getElementById('authorizeBtn');
 
-const W = 220, H = 260;
+let W, H;
 
-ditherCanvas.width  = W;
-ditherCanvas.height = H;
-offscreen.width     = W;
-offscreen.height    = H;
+function syncCanvasSize() {
+  const rect = ditherCanvas.getBoundingClientRect();
+  W = Math.round(rect.width)  || 220;
+  H = Math.round(rect.height) || 260;
+  ditherCanvas.width  = W;
+  ditherCanvas.height = H;
+  offscreen.width     = W;
+  offscreen.height    = H;
+}
+
+syncCanvasSize();
+window.addEventListener('resize', syncCanvasSize);
 
 // ─── Bayer 4×4 Ordered Dither Matrix ─────────────────────────
 const BAYER_4 = [
@@ -87,7 +95,7 @@ function renderFrame() {
 async function initCam() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 320, height: 240 },
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
     });
     video.srcObject = stream;
     await video.play();

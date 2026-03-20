@@ -21,7 +21,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+  align-items: flex-start;
 }
 
 /* Scanlines */
@@ -52,7 +55,7 @@ body::after {
 
 /* ─── Terminal Card ──────────────────────────────────────────── */
 .terminal {
-  width: 620px;
+  width: min(620px, 100vw);
   border: 2px solid var(--teal);
   background: var(--bg);
   box-shadow:
@@ -451,6 +454,97 @@ body::after {
 }
 
 @keyframes marquee {
-  0%   { transform: translateX(620px); }
+  0%   { transform: translateX(100vw); }
   100% { transform: translateX(-100%); }
+}
+
+/* ─── Mobile (≤ 480px) ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  body {
+    align-items: flex-start;
+    min-height: 100dvh;
+  }
+
+  .terminal {
+    width: 100vw;
+    border-left: none;
+    border-right: none;
+    min-height: 100dvh;
+  }
+
+  /* Stack cam above info panel */
+  .main-body {
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  /* Camera fills full width */
+  .cam-wrapper {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    flex-shrink: unset;
+  }
+
+  .cam-wrapper canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .info-panel {
+    padding-left: 0;
+    padding-top: 4px;
+  }
+
+  .officer-id {
+    font-size: 30px;
+    letter-spacing: 2px;
+  }
+
+  .header-left {
+    font-size: 18px;
+  }
+
+  .header-left span {
+    font-size: 22px;
+  }
+
+  .signal-label {
+    display: none; /* avoid crowding on tiny screens */
+  }
+
+  .auth-block {
+    font-size: 9px;
+  }
+
+  .footer {
+    font-size: 8px;
+    letter-spacing: 1px;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-symbol { display: none; }
+}
+
+/* ─── Tablet (481px – 660px) ─────────────────────────────────── */
+@media (min-width: 481px) and (max-width: 660px) {
+  .terminal {
+    width: 100vw;
+    border-left: none;
+    border-right: none;
+  }
+
+  .cam-wrapper {
+    width: 180px;
+    height: 215px;
+  }
+
+  .officer-id {
+    font-size: 32px;
+  }
 }
