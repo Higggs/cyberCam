@@ -1,4 +1,4 @@
-// ─── Canvas Setup ────────────────────────────────────────────
+// ─── Elements ────────────────────────────────────────────────
 const video        = document.getElementById('videoEl');
 const offscreen    = document.getElementById('offscreen');
 const ditherCanvas = document.getElementById('ditherCanvas');
@@ -7,27 +7,20 @@ const offCtx       = offscreen.getContext('2d');
 const permPrompt   = document.getElementById('permPrompt');
 const authorizeBtn = document.getElementById('authorizeBtn');
 
-let W, H;
+// ─── Canvas Dimensions (set from native video resolution) ────
+let W = 640;
+let H = 480;
 
 function syncCanvasSize() {
-  // On mobile, use video's native resolution so the feed isn't cropped or squished.
-  // Fall back to rendered wrapper size (desktop behaviour).
   if (video.videoWidth && video.videoHeight) {
     W = video.videoWidth;
     H = video.videoHeight;
-  } else {
-    const rect = ditherCanvas.parentElement.getBoundingClientRect();
-    W = Math.round(rect.width)  || 220;
-    H = Math.round(rect.height) || 260;
   }
   ditherCanvas.width  = W;
   ditherCanvas.height = H;
   offscreen.width     = W;
   offscreen.height    = H;
 }
-
-// Re-sync whenever the video stream starts or the window resizes
-window.addEventListener('resize', syncCanvasSize);
 
 // ─── Bayer 4×4 Ordered Dither Matrix ─────────────────────────
 const BAYER_4 = [
@@ -49,7 +42,7 @@ const PALETTE = [
   [180, 240, 235],
 ];
 
-// ─── Dithering ────────────────────────────────────────────────
+// ─── Bayer Dither ─────────────────────────────────────────────
 function applyBayerDither(imageData) {
   const src = imageData.data;
   const out = ctx.createImageData(W, H);
@@ -59,15 +52,10 @@ function applyBayerDither(imageData) {
     for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
 
-      // Luminance
-      const grey = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
-
-      // Ordered threshold
+      const grey      = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
       const threshold = (BAYER_4[(y % 4) * 4 + (x % 4)] / 16) * 255;
       const dithered  = Math.min(255, grey + threshold * 0.35);
-
-      // Map to palette
-      const pIdx = Math.floor((dithered / 255) * (PALETTE.length - 1));
+      const pIdx      = Math.floor((dithered / 255) * (PALETTE.length - 1));
       const [r, g, b] = PALETTE[pIdx];
 
       dst[i]     = r;
@@ -81,50 +69,67 @@ function applyBayerDither(imageData) {
 }
 
 // ─── Render Loop ──────────────────────────────────────────────
+let rafId = null;
+
 function renderFrame() {
   if (video.readyState >= 2) {
-    // Mirror the feed horizontally
     offCtx.save();
     offCtx.translate(W, 0);
-    offCtx.scale(-1, 1);
+    offCtx.scale(-1, 1); // mirror horizontally
     offCtx.drawImage(video, 0, 0, W, H);
     offCtx.restore();
 
-    const frame    = offCtx.getImageData(0, 0, W, H);
-    const dithered = applyBayerDither(frame);
-    ctx.putImageData(dithered, 0, 0);
+    ctx.putImageData(applyBayerDither(offCtx.getImageData(0, 0, W, H)), 0, 0);
   }
 
-  requestAnimationFrame(renderFrame);
+  rafId = requestAnimationFrame(renderFrame);
 }
 
 // ─── Camera Init ──────────────────────────────────────────────
 async function initCam() {
+  authorizeBtn.textContent = '[ INITIALIZING... ]';
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+      video: {
+        facingMode: 'user',
+        width:  { ideal: 1280 },
+        height: { ideal: 720 },
+      },
     });
+
     video.srcObject = stream;
-    video.addEventListener('loadedmetadata', syncCanvasSize);
+
+    video.addEventListener('loadedmetadata', () => {
+      syncCanvasSize();
+    }, { once: true });
+
     await video.play();
-    syncCanvasSize(); // ensure size is set before first frame
+
+    syncCanvasSize();
     permPrompt.style.display = 'none';
     renderFrame();
-  } catch {
+
+  } catch (err) {
+    console.error('Camera error:', err);
     permPrompt.querySelector('p').textContent =
-      'CAMERA ACCESS DENIED.\nCHECK PERMISSIONS.';
+      'CAMERA ACCESS\nDENIED.\nCHECK PERMISSIONS.';
     authorizeBtn.textContent = '[ RETRY ]';
   }
 }
 
+// Handle orientation / resize — re-sync if video is already running
+window.addEventListener('resize', () => {
+  if (video.readyState >= 2) syncCanvasSize();
+});
+
 authorizeBtn.addEventListener('click', initCam);
 
 // ─── Status Cycling ───────────────────────────────────────────
-const STATUSES = ['ACTIVE ▮', 'SCANNING..', 'ACTIVE ▮', 'LINK OK ▮', 'ACTIVE ▮'];
-let statusIdx = 0;
-const statusEl = document.getElementById('statusValue');
+const STATUSES  = ['ACTIVE ▮', 'SCANNING..', 'ACTIVE ▮', 'LINK OK ▮', 'ACTIVE ▮'];
+let   statusIdx = 0;
+const statusEl  = document.getElementById('statusValue');
 
 setInterval(() => {
-  statusEl.textContent = STATUSES[statusIdx % STATUSES.length];
-  statusIdx++;
+  statusEl.textContent = STATUSES[statusIdx++ % STATUSES.length];
 }, 2200);
